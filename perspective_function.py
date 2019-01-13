@@ -1,28 +1,32 @@
-
-import numpy as np
-import cv2
 import glob
+
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
+
 from calibration_functions import calibrateCamera_SLOW, undistort
 from threshold_functions import binarize_image
 
+
 def birdview(img, verbose=False):
 
+    #img should be RGB Format
     # Compute and apply perpective transform
 
     h, w = img.shape[:2]
-    src = np.float32([[w, h-10],    
-                      [0, h-10],    
-                      [546, 460],   
-                      [732, 460]])  
-    dst = np.float32([[w, h],       
-                      [0, h],       
-                      [0, 0],       
-                      [w, 0]])      
+    src = np.float32([[w, h-10],
+                      [0, h-10],
+                      [550, 460],
+                      [728, 460]])
+    dst = np.float32([[w, h],
+                      [0, h],
+                      [0, 0],
+                      [w, 0]])
 
     M = cv2.getPerspectiveTransform(src, dst)
     Minv = cv2.getPerspectiveTransform(dst, src)
-    warped = cv2.warpPerspective(img, M, (w,h), flags=cv2.INTER_NEAREST)  # keep same size as input image
+    # keep same size as input image
+    warped = cv2.warpPerspective(img, M, (w, h), flags=cv2.INTER_NEAREST)
 
     if verbose:
         plt.figure()
@@ -31,9 +35,11 @@ def birdview(img, verbose=False):
 
     return warped, M, Minv
 
+
 if __name__ == '__main__':
 
-    ret, mtx, dist, rvecs, tvecs = calibrateCamera_SLOW(calib_images_directory='camera_cal')
+    ret, mtx, dist, rvecs, tvecs = calibrateCamera_SLOW(
+        calib_images_directory='camera_cal')
 
     # show result on test images
     for test_img in glob.glob('test_images/*.jpg'):
@@ -42,6 +48,7 @@ if __name__ == '__main__':
 
         img_undistorted = undistort(img, mtx, dist, verbose=False)
 
-        img_binary, closing, opening = binarize_image(img_undistorted, verbose=False)
+        img_binary, closing, opening = binarize_image(
+            img_undistorted, verbose=False)
 
-        img_birdview, M, Minv = birdview(opening, verbose=True)
+        img_birdview, M, Minv = birdview(img_binary, verbose=True)

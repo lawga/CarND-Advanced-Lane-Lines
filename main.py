@@ -1,23 +1,24 @@
-import numpy as np
-import cv2
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import pickle
-from threshold_functions import abs_sobel_thresh
-from threshold_functions import mag_thresh
-from threshold_functions import dir_threshold
-from threshold_functions import hls_select
-from threshold_functions import hsv_select
+
+import cv2
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import numpy as np
+
+from threshold_functions import (abs_sobel_thresh, dir_threshold, hls_select,
+                                 hsv_select, mag_thresh)
 
 # Read in an image
 image = mpimg.imread('test_images/test4.jpg')
 
-ksize = 5;
+ksize = 5
 
 # Run the function
-gradx = abs_sobel_thresh(image, orient='x', sobel_kernel=ksize, thresh=(20, 100))
+gradx = abs_sobel_thresh(
+    image, orient='x', sobel_kernel=ksize, thresh=(20, 100))
 
-grady = abs_sobel_thresh(image, orient='y', sobel_kernel=ksize, thresh=(20, 100))
+grady = abs_sobel_thresh(
+    image, orient='y', sobel_kernel=ksize, thresh=(20, 100))
 
 # Run the function
 mag_binary = mag_thresh(image, sobel_kernel=9, mag_thresh=(30, 100))
@@ -36,9 +37,10 @@ hsv_v_binary = hsv_select(image, thresh=(230, 255), channel='V')
 
 combined = np.zeros_like(dir_binary)
 #combined[((gradx == 1) & (grady == 0)) | ((mag_binary == 1) | (dir_binary == 1)) | (hls_s_binary == 1)] = 1
-combined[((gradx == 1) & (grady == 0)) | (hls_s_binary == 1) & (hls_h_binary == 0) | (hsv_v_binary == 1)] = 1
+combined[((gradx == 1) & (grady == 0)) | (hls_s_binary == 1)
+         & (hls_h_binary == 0) | (hsv_v_binary == 1)] = 1
 
-color_binary = np.dstack(( np.zeros_like(gradx), gradx, hls_s_binary)) * 255
+color_binary = np.dstack((np.zeros_like(gradx), gradx, hls_s_binary)) * 255
 
 
 # Plot the result
@@ -54,4 +56,3 @@ plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
 
 plt.figure()
 plt.imshow(hsv_v_binary)
-

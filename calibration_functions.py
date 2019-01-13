@@ -1,16 +1,16 @@
-
-import numpy as np
-import cv2
 import glob
 import os.path as path
-import matplotlib.pyplot as plt
 import pickle
+
+import cv2
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import numpy as np
 
-
-#chessboard size 
+# chessboard size
 m = 9
 n = 6
+
 
 def calibrateCamera_decorater(func):
     """
@@ -21,9 +21,9 @@ def calibrateCamera_decorater(func):
 
     def timesaver(*args, **kwargs):
         if path.exists(calibration_data):
-                print('Loading calculated camera calibration...', end=' ')
-                with open(calibration_data, 'rb') as dump_file:
-                    calibration_param = pickle.load(dump_file)
+            print('Loading calculated camera calibration...', end=' ')
+            with open(calibration_data, 'rb') as dump_file:
+                calibration_param = pickle.load(dump_file)
         else:
             print('Computing camera calibration_param...', end=' ')
             calibration_param = func(*args, **kwargs)
@@ -38,16 +38,16 @@ def calibrateCamera_decorater(func):
 @calibrateCamera_decorater
 def calibrateCamera_SLOW(calib_images_directory, verbose=False):
 
-    
-    assert path.exists(calib_images_directory), '"{}" The folder must exist and contain calibration images.'.format(calib_images_directory)
+    assert path.exists(calib_images_directory), '"{}" The folder must exist and contain calibration images.'.format(
+        calib_images_directory)
 
     # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-    objp = np.zeros((n*m,3), np.float32)
-    objp[:,:2] = np.mgrid[0:m, 0:n].T.reshape(-1,2)
+    objp = np.zeros((n*m, 3), np.float32)
+    objp[:, :2] = np.mgrid[0:m, 0:n].T.reshape(-1, 2)
 
     # Arrays to store object points and image points from all the images.
-    objpoints = [] # 3d points in real world space
-    imgpoints = [] # 2d points in image plane.
+    objpoints = []  # 3d points in real world space
+    imgpoints = []  # 2d points in image plane.
 
     # Make a list of calibration images
     images = glob.glob(path.join(calib_images_directory, 'calibration*.jpg'))
@@ -58,7 +58,7 @@ def calibrateCamera_SLOW(calib_images_directory, verbose=False):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # Find the chessboard corners
-        ret, corners = cv2.findChessboardCorners(gray, (m,n), None)
+        ret, corners = cv2.findChessboardCorners(gray, (m, n), None)
 
         # If found, add object points, image points
         if ret == True:
@@ -67,18 +67,20 @@ def calibrateCamera_SLOW(calib_images_directory, verbose=False):
 
             if verbose:
                 # Draw and display the corners
-                cv2.drawChessboardCorners(img, (m,n), corners, ret)
+                cv2.drawChessboardCorners(img, (m, n), corners, ret)
                 #write_name = 'corners_found'+str(idx)+'.jpg'
                 #cv2.imwrite(write_name, img)
                 cv2.imshow('img', img)
                 cv2.waitKey(500)
     if verbose:
         cv2.destroyAllWindows()
-    
+
     # Do camera calibration given object points and image points
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img.shape[1::-1],None,None)
+    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+        objpoints, imgpoints, img.shape[1::-1], None, None)
 
     return ret, mtx, dist, rvecs, tvecs
+
 
 def undistort(img, mtx, dist, verbose=False):
     """
@@ -89,7 +91,8 @@ def undistort(img, mtx, dist, verbose=False):
     :param verbose: if True, show frame before/after distortion correction
     :return: undistorted image
     """
-    image_undistorted = cv2.undistort(img, mtx, dist, None, newCameraMatrix=mtx)
+    image_undistorted = cv2.undistort(
+        img, mtx, dist, None, newCameraMatrix=mtx)
 
     if verbose:
         fig, ax = plt.subplots(nrows=1, ncols=2)
@@ -99,16 +102,16 @@ def undistort(img, mtx, dist, verbose=False):
 
     return image_undistorted
 
+
 if __name__ == '__main__':
 
-    ret, mtx, dist, rvecs, tvecs = calibrateCamera_SLOW(calib_images_directory='camera_cal', verbose=False)
+    ret, mtx, dist, rvecs, tvecs = calibrateCamera_SLOW(
+        calib_images_directory='camera_cal', verbose=False)
 
     img = cv2.imread('test_images/test2.jpg')
 
     img_undistorted = undistort(img, mtx, dist, verbose=True)
 
     cv2.imwrite('calibration_output/test2_before_calibration.jpg', img)
-    cv2.imwrite('calibration_output/test2_after_calibration.jpg', img_undistorted)
-
-
-
+    cv2.imwrite('calibration_output/test2_after_calibration.jpg',
+                img_undistorted)
