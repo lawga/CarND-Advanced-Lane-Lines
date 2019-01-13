@@ -23,14 +23,12 @@ class Line():
         self.recent_xfitted = []
 
         # polynomial coefficients for the most recent fit
-        self.current_fit_pixels = None
-        self.current_fit_meters = None
+        self.last_fit_pixel = None
+        self.last_fit_meter = None
 
         # list of polynomial coefficients of the last N iterations
         self.recent_fits_pixel = collections.deque(maxlen=2 * buffer_length)
         self.recent_fits_meter = collections.deque(maxlen=2 * buffer_length)
-
-        self.radius_of_curvature = None
 
         # distance in meters of vehicle center from the line
         self.line_base_pos = None
@@ -42,7 +40,7 @@ class Line():
         # y values for detected line pixels
         self.ally = None
 
-    def draw(self, mask, color=(255, 0, 0), line_width=50, average=False):
+    def draw(self, mask, color=(0, 255, 0), line_width=50, average=False):
         """
         Draw the line on a color mask image.
         """
@@ -55,7 +53,7 @@ class Line():
         line_left_side = line_center - line_width // 2
         line_right_side = line_center + line_width // 2
 
-        #recast the x and y points into usable format for cv2.fillPoly()
+        # recast the x and y points into usable format for cv2.fillPoly()
         pts_left = np.array(list(zip(line_left_side, plot_y)))
         pts_right = np.array(np.flipud(list(zip(line_right_side, plot_y))))
         pts = np.hstack([pts_left, pts_right])
@@ -108,11 +106,11 @@ class Line():
     # radius of curvature of the line in some units
     def radius_of_curvature_meters(self):
         y_eval = 0
-        coeffs = self.best_fit_meters
+        coeffs = self.last_fit_meter
         return ((1 + (2 * coeffs[0] * y_eval + coeffs[1]) ** 2) ** 1.5) / np.absolute(2 * coeffs[0])
 
 
-def find_lane_pixels(binary_warped, line_lt, line_rt, nwindows=9, verbose=False):
+def find_lane_pixels(binary_warped, line_L, line_R, nwindows=9, verbose=False):
     # Take a histogram of the bottom half of the image
     histogram = np.sum(binary_warped[binary_warped.shape[0]//2:, :], axis=0)
     # Create an output image to draw on and visualize the result
@@ -191,44 +189,48 @@ def find_lane_pixels(binary_warped, line_lt, line_rt, nwindows=9, verbose=False)
         pass
 
     # Extract left and right line pixel positions
-    
+
     # leftx = nonzerox[left_lane_inds]
     # lefty = nonzeroy[left_lane_inds]
     # rightx = nonzerox[right_lane_inds]
     # righty = nonzeroy[right_lane_inds]
 
-    leftx = line_lt.allx = nonzerox[left_lane_inds]
-    lefty = line_lt.ally = nonzeroy[left_lane_inds]
-    rightx = line_rt.allx = nonzerox[right_lane_inds]
-    righty = line_rt.ally = nonzeroy[right_lane_inds]
+    leftx = line_L.allx = nonzerox[left_lane_inds]
+    lefty = line_L.ally = nonzeroy[left_lane_inds]
+    rightx = line_R.allx = nonzerox[right_lane_inds]
+    righty = line_R.ally = nonzeroy[right_lane_inds]
 
     detected = True
-    if not list(line_lt.allx) or not list(line_lt.ally):
-        left_fit_pixel = line_lt.last_fit_pixel
-        left_fit_meter = line_lt.last_fit_meter
+    if not list(line_L.allx) or not list(line_L.ally):
+        left_fit_pixel = line_L.last_fit_pixel
+        left_fit_meter = line_L.last_fit_meter
         detected = False
     else:
-        left_fit_pixel = np.polyfit(line_lt.ally, line_lt.allx, 2)
-        left_fit_meter = np.polyfit(line_lt.ally * ym_per_pix, line_lt.allx * xm_per_pix, 2)
+        left_fit_pixel = np.polyfit(line_L.ally, line_L.allx, 2)
+        left_fit_meter = np.polyfit(
+            line_L.ally * ym_per_pix, line_L.allx * xm_per_pix, 2)
 
-    if not list(line_rt.allx) or not list(line_rt.ally):
-        right_fit_pixel = line_rt.last_fit_pixel
-        right_fit_meter = line_rt.last_fit_meter
+    if not list(line_R.allx) or not list(line_R.ally):
+        right_fit_pixel = line_R.last_fit_pixel
+        right_fit_meter = line_R.last_fit_meter
         detected = False
     else:
-        right_fit_pixel = np.polyfit(line_rt.ally, line_rt.allx, 2)
-        right_fit_meter = np.polyfit(line_rt.ally * ym_per_pix, line_rt.allx * xm_per_pix, 2)
+        right_fit_pixel = np.polyfit(line_R.ally, line_R.allx, 2)
+        right_fit_meter = np.polyfit(
+            line_R.ally * ym_per_pix, line_R.allx * xm_per_pix, 2)
 
-    line_lt.update_line(left_fit_pixel, left_fit_meter, detected=detected)
-    line_rt.update_line(right_fit_pixel, right_fit_meter, detected=detected)
     
 
-    ### TO-DO: Fit a second order polynomial to each using `np.polyfit` ###
+    #Fit a second order polynomial to each using `np.polyfit` ###
     left_fit = np.polyfit(lefty, leftx, 2)
     right_fit = np.polyfit(righty, rightx, 2)
 
     left_fit_meter = np.polyfit(lefty*ym_per_pix, leftx*xm_per_pix, 2)
     right_fit_meter = np.polyfit(righty*ym_per_pix, rightx*xm_per_pix, 2)
+
+
+    line_L.update_line(left_fit_pixel, left_fit_meter, detected=detected)
+    line_R.update_line(right_fit_pixel, right_fit_meter, detected=detected)
 
     # Generate x and y values for plotting
     ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
@@ -246,8 +248,6 @@ def find_lane_pixels(binary_warped, line_lt, line_rt, nwindows=9, verbose=False)
     out_img[lefty, leftx] = [255, 0, 0]
     out_img[righty, rightx] = [0, 0, 255]
 
-    
-
     if verbose:
         # Plots the left and right polynomials on the lane lines
         plt.plot(left_fitx, ploty, color='yellow')
@@ -255,19 +255,21 @@ def find_lane_pixels(binary_warped, line_lt, line_rt, nwindows=9, verbose=False)
         plt.imshow(out_img, cmap='gray')
         plt.show()
 
-    return line_lt, line_rt, out_img
+    return line_L, line_R, out_img
 
-def unwarp_lines(undist, color_warp, line_lt, line_rt, Minv, keep_state, verbose=False):
+
+def unwarp_lines(undist, color_warp, line_L, line_R, Minv, keep_state, verbose=False):
 
     h, w, c = undist.shape
 
-    left_fit = line_lt.average_fit if keep_state else line_lt.last_fit_pixel
-    right_fit = line_rt.average_fit if keep_state else line_rt.last_fit_pixel
+    left_fit = line_L.average_fit if keep_state else line_L.last_fit_pixel
+    right_fit = line_R.average_fit if keep_state else line_R.last_fit_pixel
 
     # Generate x and y values for plotting
     ploty = np.linspace(0, h - 1, h)
     left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
-    right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+    right_fitx = right_fit[0] * ploty ** 2 + \
+        right_fit[1] * ploty + right_fit[2]
 
     # Create an image to draw the lines on
     warp_zero = np.zeros_like(undist, dtype=np.uint8)
@@ -275,15 +277,15 @@ def unwarp_lines(undist, color_warp, line_lt, line_rt, Minv, keep_state, verbose
 
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
-    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
+    pts_right = np.array(
+        [np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
     pts = np.hstack((pts_left, pts_right))
 
     # Draw the lane onto the warped blank image
-    cv2.fillPoly(warp_zero, np.int_([pts]), (0,255, 0))
-
+    cv2.fillPoly(warp_zero, np.int_([pts]), (0, 255, 0))
 
     # Warp the blank back to original image space using inverse perspective matrix (Minv)
-    newwarp = cv2.warpPerspective(warp_zero, Minv, (w, h)) 
+    newwarp = cv2.warpPerspective(warp_zero, Minv, (w, h))
     # Combine the result with the original image
     result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
 
@@ -291,18 +293,19 @@ def unwarp_lines(undist, color_warp, line_lt, line_rt, Minv, keep_state, verbose
 
         plt.imshow(cv2.cvtColor(result, code=cv2.COLOR_BGR2RGB))
         plt.show()
-        
+
     return result
+
 
 if __name__ == '__main__':
 
-    line_lt, line_rt = Line(buffer_length=10), Line(buffer_length=10)
+    line_L, line_R = Line(buffer_length=10), Line(buffer_length=10)
 
     ret, mtx, dist, rvecs, tvecs = calibrateCamera_SLOW(
         calib_images_directory='camera_cal')
 
     # show result on test images
-    for test_img in glob.glob('test_images/*.jpg'):
+    for test_img in glob.glob('test_images/*2.jpg'):
 
         img = cv2.imread(test_img)
 
@@ -313,6 +316,8 @@ if __name__ == '__main__':
 
         img_birdview, M, Minv = birdview(img_binary, verbose=False)
 
-        line_lt, line_rt, img_lanes = find_lane_pixels(img_birdview, line_lt, line_rt, nwindows=9, verbose=False)
+        line_L, line_R, img_lanes = find_lane_pixels(
+            img_birdview, line_L, line_R, nwindows=9, verbose=False)
 
-        unwarp_linesss = unwarp_lines(img_undistorted, img_lanes, line_lt, line_rt, Minv, keep_state=False, verbose=True)
+        draw_lines_on_image = unwarp_lines(
+            img_undistorted, img_lanes, line_L, line_R, Minv, keep_state=False, verbose=True)
