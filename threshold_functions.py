@@ -30,10 +30,15 @@ def abs_sobel_thresh(img, orient='xy', sobel_kernel=3, thresh=(0, 255), verbose=
         abs_sobel = np.sqrt(abs_sobel_x ** 2 + abs_sobel_y ** 2)
     scaled_sobel = np.uint8(255 * abs_sobel/np.max(abs_sobel))
 
+    """ #thresholding after Gaussian filtering
+    blur = cv2.GaussianBlur(scaled_sobel,(5,5),0)
+    _,binary_output = cv2.threshold(blur, 50, 1, cv2.THRESH_BINARY)
+    """
+
     # Otsu's thresholding after Gaussian filtering
     blur = cv2.GaussianBlur(scaled_sobel,(5,5),0)
     _,binary_output = cv2.threshold(blur,thresh[0],thresh[1],cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-
+    
     #binary_output = np.zeros_like(scaled_sobel)
     #binary_output[(scaled_sobel >= thresh[0]) & (scaled_sobel <= thresh[1])] = 1
 
@@ -212,7 +217,7 @@ def binarize_image(img, verbose=False):
     binary_output = np.logical_or(binary_output, histo_white_lanes)
 
     #apply sobel mask to the image
-    sobel_mask = abs_sobel_thresh(img, orient='xy', sobel_kernel=9, thresh=(0, 255), verbose=False)
+    sobel_mask = abs_sobel_thresh(img, orient='xy', sobel_kernel=9, thresh=(0, 250), verbose=False)
 
     #add the sobel mask to the binary image
     binary_output = np.logical_or(binary_output, sobel_mask)
@@ -224,20 +229,25 @@ def binarize_image(img, verbose=False):
     binary_output = np.logical_or(binary_output, hls_s_binary)
 
     # apply a light morphology to "fill the gaps" in the binary image
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((6, 6), np.uint8)
     closing = cv2.morphologyEx(binary_output.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
 
+    kernel = np.ones((3, 3), np.uint8)
+    opening = cv2.morphologyEx(closing.astype(np.uint8), cv2.MORPH_OPEN, kernel)
+
+
     if verbose:
-        plt.figure()
+        # plt.figure()
         plt.imshow(binary_output, cmap='gray')
         plt.show()
 
         plt.imshow(closing, cmap='gray')
         plt.show()
 
-        cv2.waitKey(1500)
+        plt.imshow(opening, cmap='gray')
+        plt.show()
 
-    return binary_output, closing
+    return binary_output, closing, opening
 
 
 def pipeline(img, s_thresh=(170, 255), sx_thresh=(20, 100)):
@@ -263,11 +273,12 @@ def pipeline(img, s_thresh=(170, 255), sx_thresh=(20, 100)):
     return color_binary
 
 if __name__ == '__main__':
+    
+    plt.figure()
 
     test_images = glob.glob('test_images/*.jpg')
     for test_image in test_images:
         img = cv2.imread(test_image)
-        binary_output, closing = binarize_image(img=img, verbose=False)
-        #plt.figure()
-        plt.imshow(binary_output, cmap='gray')
+        binary_output, closing, opening = binarize_image(img=img, verbose=False)
+        plt.imshow(opening, cmap='gray')
         plt.show()

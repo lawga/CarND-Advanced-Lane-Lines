@@ -10,7 +10,7 @@ from threshold_functions import hls_select
 from threshold_functions import hsv_select
 
 # Read in an image
-image = mpimg.imread('test4.jpg')
+image = mpimg.imread('test_images/test4.jpg')
 
 ksize = 5;
 
