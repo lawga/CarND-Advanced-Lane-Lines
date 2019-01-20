@@ -1,6 +1,7 @@
 import collections
 import glob
 import os
+import time
 
 import cv2
 import matplotlib.image as mpimg
@@ -198,7 +199,7 @@ if __name__ == '__main__':
             pipeline)  # pick the file and pass it to the pipeline
         # save the file and add the number of frames in the video used to smooth the output of each frame
         clip.write_videofile(
-            'output_videos/out_{}_{}.mp4'.format(selector, N), audio=False)
+            'output_videos/out_{}_{}_{}.mp4'.format(selector, N, time.strftime("%Y%m%d-%H%M%S")), audio=False)
 
     else:
         # show result on test images
