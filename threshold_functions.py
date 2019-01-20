@@ -207,7 +207,7 @@ def binarize_image(img, verbose=False):
     """
     Convert an input frame to a binary image that highlights lanes as much as possible
 
-    :param img: input color frame
+    :param img: input color image
     :param show: if True, show resulting images
     :return: binarized image
     """
@@ -233,14 +233,14 @@ def binarize_image(img, verbose=False):
 
     # apply sobel mask to the image
     sobel_mask = abs_sobel_thresh(
-        img, orient='xy', sobel_kernel=5, thresh=(100, 255), verbose=False)
+        img, orient='xy', sobel_kernel=9, thresh=(50, 200), verbose=False)
 
     # apply a light morphology to "fill the gaps" in the binary image
     kernel = np.ones((6, 6), np.uint8)
     closing = cv2.morphologyEx(sobel_mask.astype(
         np.uint8), cv2.MORPH_CLOSE, kernel)
 
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((2, 2), np.uint8)
     opening = cv2.morphologyEx(closing.astype(
         np.uint8), cv2.MORPH_OPEN, kernel)
 
