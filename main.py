@@ -11,7 +11,8 @@ from moviepy.editor import VideoFileClip
 
 from calibration_functions import calibrateCamera_SLOW, undistort
 from globals import N, xm_per_pix, ym_per_pix
-from lines_functions import Line, find_lane_pixels, unwarp_lines, get_fits_by_previous_fits
+from lines_functions import (Line, find_lane_pixels, get_fits_by_previous_fits,
+                             unwarp_lines)
 from perspective_function import birdview
 from threshold_functions import binarize_image
 
@@ -137,13 +138,14 @@ def pipeline(img, keep_state=True):
 
     
     if processed_frames > 0 and keep_state and line_L.detected and line_R.detected:
-        print('L:',line_L.detected,'R:', line_R.detected)
+        #print('L:',line_L.detected,'R:', line_R.detected)
+        print('processed_frames:',processed_frames)
         # use sliding window to find lanes in images and fit the founded points into a 2-degree polynomial curve
         line_L, line_R, img_lanes = get_fits_by_previous_fits(img_birdview, line_L, line_R, verbose=False)
     else:    
         # use preivious sliding window data from old frames to estimate and smooth lanes in images and fit the found lanes
         line_L, line_R, img_lanes = find_lane_pixels(
-            img_birdview, line_L, line_R, nwindows=9, verbose=False)
+            img_birdview, line_L, line_R, nwindows=8, verbose=False)
 
     # draw the lane region (in green) on the original image
     img_output = draw_lines_on_image = unwarp_lines(
@@ -197,7 +199,7 @@ if __name__ == '__main__':
         test_vid_dir = 'test_videos'  # locate the directory of the targeted video
         selector = 'project_video'  # inatial part of the name of the viddeo file, Can be 'project_video' or 'challenge_video' or 'harder_challenge_video' or any other inital of files you manually add to the project
         clip = VideoFileClip('{}.mp4'.format(os.path.join(test_vid_dir, selector))).fl_image(
-            pipeline)  # pick the file and pass it to the pipeline
+            pipeline)#.subclip(38,41)  # pick the file and pass it to the pipeline .subclip(20,26)
         # save the file and add the number of frames in the video used to smooth the output of each frame
         clip.write_videofile(
             'output_videos/out_{}_{}_{}.mp4'.format(selector, N, time.strftime("%Y%m%d-%H%M%S")), audio=False)
