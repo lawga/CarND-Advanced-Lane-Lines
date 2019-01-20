@@ -245,7 +245,7 @@ def binarize_image(img, verbose=False):
         np.uint8), cv2.MORPH_OPEN, kernel)
 
     # add the sobel mask to the binary image
-    binary_output = np.logical_or(opening, sobel_mask)
+    binary_output = np.logical_or(opening, binary_output)
 
     # using HLS, Find lanes in the image
     hls_s_binary = hls_select(img, thresh=(200, 255), channel='S')
