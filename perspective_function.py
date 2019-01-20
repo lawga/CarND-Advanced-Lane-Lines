@@ -14,14 +14,22 @@ def birdview(img, verbose=False):
     # Compute and apply perpective transform
 
     h, w = img.shape[:2]
-    src = np.float32([[w, h-10],
-                      [0, h-10],
-                      [550, 460],
-                      [728, 460]])
-    dst = np.float32([[w, h],
-                      [0, h],
-                      [0, 0],
-                      [w, 0]])
+    # src = np.float32([[w, h-10],
+    #                   [0, h-10],
+    #                   [580, 477],
+    #                   [699, 477]])
+    # dst = np.float32([[w, h],
+    #                   [0, h],
+    #                   [0, 0],
+    #                   [w, 0]])
+    src = np.float32([[896., 675.],
+                      [384., 675.],
+                      [581, 460],
+                      [699, 460]])
+    dst = np.float32([[896., 720.],
+                      [384., 720.],
+                      [280., 0.],
+                      [1024., 0.]])
 
     M = cv2.getPerspectiveTransform(src, dst)
     Minv = cv2.getPerspectiveTransform(dst, src)
