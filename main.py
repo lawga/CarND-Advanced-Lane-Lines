@@ -80,7 +80,7 @@ def blend_output_image(draw_on_road, img_binary, img_birdview, img_fit, offset_m
     # add a gray rectangle as a frame to highlight the left area of the screen
     mask = draw_on_road.copy()
     mask = cv2.rectangle(mask, pt1=(0, 0), pt2=(
-        thumb_width+2*off_x, int(hight*0.69)), color=(0, 0, 0), thickness=cv2.FILLED)
+        thumb_width+2*off_x, int(hight*0.75)), color=(0, 0, 0), thickness=cv2.FILLED)
     draw_on_road = cv2.addWeighted(
         src1=mask, alpha=0.2, src2=draw_on_road, beta=0.8, gamma=0)
 
@@ -105,8 +105,9 @@ def blend_output_image(draw_on_road, img_binary, img_birdview, img_fit, offset_m
     mean_curvature_meter = np.mean(
         [line_L.radius_of_curvature_meters, line_R.radius_of_curvature_meters])
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(draw_on_road, 'Curvature radius: {:.02f}m'.format(
-        mean_curvature_meter), (int((width-400)/2), 620), font, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
+    cv2.putText(draw_on_road, 'L Curvature: {:.02f}m'.format(line_L.radius_of_curvature_meters), (off_x, 3*(thumb_hight+off_y)+int(1.5*off_y)), font, 0.7, (255, 0, 0), 2, cv2.LINE_AA)
+    cv2.putText(draw_on_road, 'R Curvature: {:.02f}m'.format(line_R.radius_of_curvature_meters), (off_x, 3*(thumb_hight+off_y)+3*off_y), font, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
+    cv2.putText(draw_on_road, 'Curvature radius: {:.02f}m'.format(mean_curvature_meter), (int((width-400)/2), 600), font, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
     # cv2.putText(draw_on_road, 'Offset from center: {:.02f}m'.format(
     #     offset_meter), (off_x, 3*(thumb_hight+off_y)+5*off_y), font, 0.9, (0, 255, 0), 2, cv2.LINE_AA)
     cv2.putText(draw_on_road, 'Offset from center: {:.02f}m'.format(
