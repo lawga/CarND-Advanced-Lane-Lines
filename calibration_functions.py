@@ -40,8 +40,8 @@ def calibrateCamera_SLOW(calib_images_directory, verbose=False):
         calib_images_directory)
 
     # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-    objp = np.zeros((n*m, 3), np.float32)
-    objp[:, :2] = np.mgrid[0:m, 0:n].T.reshape(-1, 2)
+    objp = np.zeros((n_chess*m_chess, 3), np.float32)
+    objp[:, :2] = np.mgrid[0:m_chess, 0:n_chess].T.reshape(-1, 2)
 
     # Arrays to store object points and image points from all the images.
     objpoints = []  # 3d points in real world space
@@ -56,7 +56,7 @@ def calibrateCamera_SLOW(calib_images_directory, verbose=False):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # Find the chessboard corners
-        ret, corners = cv2.findChessboardCorners(gray, (m, n), None)
+        ret, corners = cv2.findChessboardCorners(gray, (m_chess, n_chess), None)
 
         # If found, add object points, image points
         if ret == True:
@@ -65,7 +65,7 @@ def calibrateCamera_SLOW(calib_images_directory, verbose=False):
 
             if verbose:
                 # Draw and display the corners
-                cv2.drawChessboardCorners(img, (m, n), corners, ret)
+                cv2.drawChessboardCorners(img, (m_chess, n_chess), corners, ret)
                 #write_name = 'corners_found'+str(idx)+'.jpg'
                 #cv2.imwrite(write_name, img)
                 cv2.imshow('img', img)
