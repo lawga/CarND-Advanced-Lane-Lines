@@ -218,7 +218,7 @@ def binarize_image(img, verbose=False):
 
     # using HSV, Find yellow lanes in the image (min [0, 70, 70] and max [50, 255, 255] were selected to detect yellow at all conditions in the image)
     HSV_yellow_lanes = hsv_select(img, thresh=(
-        [0, 70, 70], [50, 255, 255]), channel='all', verbose=False)
+        [0, 100, 100], [50, 255, 255]), channel='all', verbose=False)
 
     #HSV_yellow_lanes = thresh_frame_in_HSV(img, yellow_HSV_th_min, yellow_HSV_th_max, verbose=False)
 
