@@ -274,40 +274,61 @@ def get_fits_by_previous_fits(birdeye_binary, line_L, line_R, verbose=False):
     left_fit_pixel = line_L.last_fit_pixel
     right_fit_pixel = line_R.last_fit_pixel
 
+    # Identify the x and y positions of all nonzero pixels in the image
     nonzero = birdeye_binary.nonzero()
-    nonzero_y = np.array(nonzero[0])
-    nonzero_x = np.array(nonzero[1])
-    margin = 70
+    nonzeroy = np.array(nonzero[0])
+    nonzerox = np.array(nonzero[1])
+
+    # Set the width of the windows +/- margin
+    margin = 100
+
+    # Identify the nonzero pixels in x and y within the previous detected line-lane
     left_lane_inds = (
-    (nonzero_x > (left_fit_pixel[0] * (nonzero_y ** 2) + left_fit_pixel[1] * nonzero_y + left_fit_pixel[2] - margin)) & (
-    nonzero_x < (left_fit_pixel[0] * (nonzero_y ** 2) + left_fit_pixel[1] * nonzero_y + left_fit_pixel[2] + margin)))
+    (nonzerox > (left_fit_pixel[0] * (nonzeroy ** 2) + left_fit_pixel[1] * nonzeroy + left_fit_pixel[2] - margin)) & (
+    nonzerox < (left_fit_pixel[0] * (nonzeroy ** 2) + left_fit_pixel[1] * nonzeroy + left_fit_pixel[2] + margin)))
     right_lane_inds = (
-    (nonzero_x > (right_fit_pixel[0] * (nonzero_y ** 2) + right_fit_pixel[1] * nonzero_y + right_fit_pixel[2] - margin)) & (
-    nonzero_x < (right_fit_pixel[0] * (nonzero_y ** 2) + right_fit_pixel[1] * nonzero_y + right_fit_pixel[2] + margin)))
+    (nonzerox > (right_fit_pixel[0] * (nonzeroy ** 2) + right_fit_pixel[1] * nonzeroy + right_fit_pixel[2] - margin)) & (
+    nonzerox < (right_fit_pixel[0] * (nonzeroy ** 2) + right_fit_pixel[1] * nonzeroy + right_fit_pixel[2] + margin)))
 
     # Extract left and right line pixel positions
-    line_L.allx, line_L.ally = nonzero_x[left_lane_inds], nonzero_y[left_lane_inds]
-    line_R.allx, line_R.ally = nonzero_x[right_lane_inds], nonzero_y[right_lane_inds]
+    line_L.allx, line_L.ally = nonzerox[left_lane_inds], nonzeroy[left_lane_inds]
+    line_R.allx, line_R.ally = nonzerox[right_lane_inds], nonzeroy[right_lane_inds]
 
+    # check if lane-line are detected in the prefious frame, if so, then load the fitting coefficents from the last frame. if not, then 
     detected = True
     if not list(line_L.allx) or not list(line_L.ally):
+        # left_fit_pixel = line_L.best_fit_pixel
+        # left_fit_meter = line_L.best_fit_meter
         left_fit_pixel = line_L.last_fit_pixel
         left_fit_meter = line_L.last_fit_meter
         detected = False
     else:
+        # left_fit_pixel = line_L.best_fit_pixels
+        # left_fit_meter = line_L.best_fit_meters
         left_fit_pixel = np.polyfit(line_L.ally, line_L.allx, 2)
         left_fit_meter = np.polyfit(line_L.ally * ym_per_pix, line_L.allx * xm_per_pix, 2)
 
     if not list(line_R.allx) or not list(line_R.ally):
+        # right_fit_pixel = line_R.best_fit_pixel
+        # right_fit_meter = line_R.best_fit_meter
         right_fit_pixel = line_R.last_fit_pixel
         right_fit_meter = line_R.last_fit_meter
         detected = False
     else:
+        # right_fit_pixel = line_R.best_fit_pixels
+        # right_fit_meter = line_R.best_fit_meters
         right_fit_pixel = np.polyfit(line_R.ally, line_R.allx, 2)
         right_fit_meter = np.polyfit(line_R.ally * ym_per_pix, line_R.allx * xm_per_pix, 2)
 
     line_L.update_line(left_fit_pixel, left_fit_meter, detected=detected)
     line_R.update_line(right_fit_pixel, right_fit_meter, detected=detected)
+    
+    # AVG the lane-lines data detected over N iterations for both Left and Right lanes.
+    line_L.last_fit_pixel = left_fit_pixel = line_L.best_fit_pixels
+    line_L.last_fit_meter = left_fit_meter = line_L.best_fit_meters
+
+    line_R.last_fit_pixel = right_fit_pixel = line_R.best_fit_pixels
+    line_R.last_fit_meter = right_fit_meter = line_R.best_fit_meters
 
     # Generate x and y values for plotting
     ploty = np.linspace(0, height - 1, height)
@@ -319,8 +340,8 @@ def get_fits_by_previous_fits(birdeye_binary, line_L, line_R, verbose=False):
     window_img = np.zeros_like(img_fit)
 
     # Color in left and right line pixels
-    img_fit[nonzero_y[left_lane_inds], nonzero_x[left_lane_inds]] = [255, 0, 0]
-    img_fit[nonzero_y[right_lane_inds], nonzero_x[right_lane_inds]] = [0, 0, 255]
+    img_fit[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
+    img_fit[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
 
     # Generate a polygon to illustrate the search window area
     # And recast the x and y points into usable format for cv2.fillPoly()
