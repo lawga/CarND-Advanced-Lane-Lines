@@ -7,9 +7,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 
-# chessboard size
-m = 9
-n = 6
+from globals import m_chess, n_chess
 
 
 def calibrateCamera_decorater(func):
