@@ -10,7 +10,7 @@ import numpy as np
 from moviepy.editor import VideoFileClip
 
 from calibration_functions import calibrateCamera_SLOW, undistort
-from globals import N, xm_per_pix, ym_per_pix
+from globals import N, xm_per_pix, ym_per_pix, m_chess, n_chess
 from lines_functions import (Line, find_lane_pixels, get_fits_by_previous_fits,
                              unwarp_lines)
 from perspective_function import birdview
