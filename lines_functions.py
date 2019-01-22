@@ -253,6 +253,9 @@ def find_lane_pixels(binary_warped, line_L, line_R, nwindows=9, verbose=False):
         plt.plot(left_fitx, ploty, color='yellow')
         plt.plot(right_fitx, ploty, color='yellow')
         plt.imshow(out_img, cmap='gray')
+        figManager = plt.get_current_fig_manager()  # to control the figure to be showen
+        # maximaize the window of the plot to cover the whole screen
+        figManager.window.showMaximized()
         plt.show()
 
     return line_L, line_R, out_img
@@ -369,12 +372,12 @@ def get_fits_by_previous_fits(birdeye_binary, line_L, line_R, verbose=False):
     return line_L, line_R, img_fit
 
 
-def unwarp_lines(undist, color_warp, line_L, line_R, Minv, keep_state, verbose=False):
+def unwarp_lines(undist, color_warp, line_L, line_R, Minv, keep_history, verbose=False):
 
     h, w, c = undist.shape
 
-    left_fit = line_L.average_fit if keep_state else line_L.last_fit_pixel
-    right_fit = line_R.average_fit if keep_state else line_R.last_fit_pixel
+    left_fit = line_L.average_fit if keep_history else line_L.last_fit_pixel
+    right_fit = line_R.average_fit if keep_history else line_R.last_fit_pixel
 
     # Generate x and y values for plotting
     ploty = np.linspace(0, h - 1, h)
@@ -403,6 +406,9 @@ def unwarp_lines(undist, color_warp, line_L, line_R, Minv, keep_state, verbose=F
     if verbose:
 
         plt.imshow(cv2.cvtColor(result, code=cv2.COLOR_BGR2RGB))
+        figManager = plt.get_current_fig_manager()  # to control the figure to be showen
+        # maximaize the window of the plot to cover the whole screen
+        figManager.window.showMaximized()
         plt.show()
 
     return result
@@ -428,7 +434,7 @@ if __name__ == '__main__':
         img_birdview, M, Minv = birdview(img_binary, verbose=False)
 
         line_L, line_R, img_lanes = find_lane_pixels(
-            img_birdview, line_L, line_R, nwindows=9, verbose=False)
+            img_birdview, line_L, line_R, nwindows=9, verbose=True)
 
         draw_lines_on_image = unwarp_lines(
-            img_undistorted, img_lanes, line_L, line_R, Minv, keep_state=False, verbose=True)
+            img_undistorted, img_lanes, line_L, line_R, Minv, keep_history=False, verbose=True)
