@@ -38,6 +38,7 @@ def birdview(img, verbose=False):
 
     if verbose:
         plt.figure()
+        # plt.imshow(cv2.cvtColor(warped, code=cv2.COLOR_BGR2RGB))
         plt.imshow(warped, cmap='gray')
         plt.show()
 
@@ -60,3 +61,4 @@ if __name__ == '__main__':
             img_undistorted, verbose=False)
 
         img_birdview, M, Minv = birdview(img_binary, verbose=True)
+        # img_birdview, M, Minv = birdview(img_undistorted, verbose=True)
