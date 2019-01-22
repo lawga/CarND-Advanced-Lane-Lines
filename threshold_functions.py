@@ -4,6 +4,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
+from saveTo import saveTo
+
 
 # Define a function that applies Sobel x or y,
 # then takes an absolute value and applies a threshold.
@@ -262,17 +264,22 @@ def binarize_image(img, verbose=False):
     if verbose:
         f, ax = plt.subplots(2, 3)
         f.set_facecolor('white')
-        ax[0, 0].imshow(HSV_yellow_lanes, cmap='gray')
-        ax[0, 0].set_title('Yellow mask')
+
+        ax[0, 0].imshow(cv2.cvtColor(img, code=cv2.COLOR_BGR2RGB), cmap='gray')
+        ax[0, 0].set_title('Original')
         ax[0, 0].set_axis_off()
-        ax[0, 0].set_axis_bgcolor('red')
-        ax[0, 1].imshow(histo_white_lanes, cmap='gray')
-        ax[0, 1].set_title('white mask')
+        
+        ax[0, 1].imshow(HSV_yellow_lanes, cmap='gray')
+        ax[0, 1].set_title('Yellow mask')
         ax[0, 1].set_axis_off()
 
-        ax[0, 2].imshow(sobel_mask, cmap='gray')
-        ax[0, 2].set_title('Sobel mask')
+        ax[0, 2].imshow(histo_white_lanes, cmap='gray')
+        ax[0, 2].set_title('white mask')
         ax[0, 2].set_axis_off()
+
+        ax[1, 2].imshow(sobel_mask, cmap='gray')
+        ax[1, 2].set_title('Sobel mask')
+        ax[1, 2].set_axis_off()
 
         ax[1, 0].imshow(binary_output, cmap='gray')
         ax[1, 0].set_title('OUTPUT')
@@ -282,9 +289,9 @@ def binarize_image(img, verbose=False):
         ax[1, 1].set_title('closing')
         ax[1, 1].set_axis_off()
 
-        ax[1, 2].imshow(opening, cmap='gray')
-        ax[1, 2].set_title('opening')
-        ax[1, 2].set_axis_off()
+        # ax[1, 2].imshow(opening, cmap='gray')
+        # ax[1, 2].set_title('opening')
+        # ax[1, 2].set_axis_off()
         plt.show()
     return binary_output, closing, opening
 
@@ -324,5 +331,8 @@ if __name__ == '__main__':
         img = cv2.imread(test_image)
         binary_output, closing, opening = binarize_image(
             img=img, verbose=True)
+
+        # binary_output = np.dstack((binary_output, binary_output, binary_output))
+        # savedImage = saveTo(binary_output, 'threshold_out', test_image.split('\\', 1)[1])
         #plt.imshow(binary_output, cmap='gray')
         #plt.show()

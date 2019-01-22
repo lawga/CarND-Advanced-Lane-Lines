@@ -117,7 +117,7 @@ def blend_output_image(draw_on_road, img_binary, img_birdview, img_fit, offset_m
     return draw_on_road
 
 
-def pipeline(img, keep_state=True):
+def pipeline(img, keep_history=True):
     """
     This is a pipeline function where the image go through different filters to find the lanes in it
     :param img: input coloured image
@@ -137,7 +137,7 @@ def pipeline(img, keep_state=True):
     img_birdview, M, Minv = birdview(img_binary, verbose=False)
 
     
-    if processed_frames > 0 and keep_state and line_L.detected and line_R.detected:
+    if processed_frames > 0 and keep_history and line_L.detected and line_R.detected:
         #print('L:',line_L.detected,'R:', line_R.detected)
         print('processed_frames:',processed_frames)
         # use sliding window to find lanes in images and fit the founded points into a 2-degree polynomial curve
@@ -145,11 +145,11 @@ def pipeline(img, keep_state=True):
     else:    
         # use preivious sliding window data from old frames to estimate and smooth lanes in images and fit the found lanes
         line_L, line_R, img_lanes = find_lane_pixels(
-            img_birdview, line_L, line_R, nwindows=8, verbose=False)
+            img_birdview, line_L, line_R, nwindows=9, verbose=False)
 
     # draw the lane region (in green) on the original image
-    img_output = draw_lines_on_image = unwarp_lines(
-        img_undistorted, img_lanes, line_L, line_R, Minv, keep_state=False, verbose=False)
+    img_output = unwarp_lines(
+        img_undistorted, img_lanes, line_L, line_R, Minv, keep_history=False, verbose=True)
 
     # compute the offset between the center of the car and the center of the lane
     offset_meter, offset_pixesls = find_offset(line_L, line_R, img_output)
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         calib_images_dir='camera_cal')
 
     # Choose between video mode or image mode
-    mode = 'video'  # 'image' or 'video'
+    mode = 'image'  # 'image' or 'video'
 
     # show result on test videos
     if mode == 'video':
@@ -213,7 +213,7 @@ if __name__ == '__main__':
             # read image as a BGR image
             img = cv2.imread(os.path.join(test_img_dir, test_img))
 
-            processed_image = pipeline(img)  # pass the image to the pipline
+            processed_image = pipeline(img, keep_history=False)  # pass the image to the pipeline
 
             cv2.imwrite('output_images/{}'.format(test_img), processed_image)
 
