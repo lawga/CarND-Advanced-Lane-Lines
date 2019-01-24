@@ -33,8 +33,8 @@ The goals / steps of this project are the following:
 [image14]: ./lines_out/test5_lanes.png
 [image15]: ./lines_out/test6_bin_lanes.png
 [image16]: ./lines_out/test6_lanes.png
-[image17]: ./output_images/Undistorted and Warped Image.png
-[image18]: ./output_images/find chess corners.png
+[image17]: ./output_images/Undistorted_and_Warped_Image.png
+[image18]: ./output_images/find_chess_corners.png
 [image19]: ./output_images/gray.jpg
 [image20]: ./output_images/gray.png
 [image21]: ./output_images/output.png
