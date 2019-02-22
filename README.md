@@ -1,5 +1,6 @@
 ## Advanced Lane Finding Project Writeup
 [![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+![Udacity - Self-Driving Car P3](https://img.shields.io/badge/Status-Pass-green.svg)
 ---
 
 **Advanced Lane Finding Project**
